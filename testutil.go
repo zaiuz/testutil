@@ -9,29 +9,31 @@ import "regexp"
 import z "github.com/zaiuz/zaiuz"
 import a "github.com/stretchr/testify/assert"
 
-// Method chain context object. Do not use directly, use one of the Http* method to obtain
-// this and then use Expect method to setup test expectations.
+// ResponseExpectable saves current calling context when chaining exepctation methods. Do
+// not use directly. Use one of the Http* method to obtain this and then use Expect method
+// to setup test expectations.
 type ResponseExpectable struct {
 	T        *testing.T
 	Response *http.Response
 	Error    error
 }
 
-// Starts a HTTP GET request and returns an object for setting up expectation for the
-// result.
+// HttpGet() starts a new HTTP GET request and returns an object for setting up
+// expectation for the result.
 func HttpGet(t *testing.T, url string) *ResponseExpectable {
 	response, e := http.Get(url)
 	return &ResponseExpectable{t, response, e}
 }
 
-// Starts a HTTP POST request with the given data payload and returns an object for
-// setting up expectation for the result.
+// HttpPost() starts a new HTTP POST request with the given data payload and returns an
+// object for setting up expectation for the result.
 func HttpPost(t *testing.T, url string, data url.Values) *ResponseExpectable {
 	response, e := http.PostForm(url, data)
 	return &ResponseExpectable{t, response, e}
 }
 
-// Reads the response body and tests if the response parameters match supplied values.
+// Expect() reads the response body and tests if the response status code and body content
+// matches the supplied values.
 func (r *ResponseExpectable) Expect(code int, body string) {
 	a.NoError(r.T, r.Error, "error while getting response.")
 	a.Equal(r.T, r.Response.StatusCode, code, "invalid status code.")
@@ -43,6 +45,8 @@ func (r *ResponseExpectable) Expect(code int, body string) {
 	}
 }
 
+// ExpectPattern() is similar to Expect() but the response body is matched against the
+// given regular expression pattern instead.
 func (r *ResponseExpectable) ExpectPattern(code int, pattern string) {
 	a.NoError(r.T, r.Error, "error while getting response.")
 	a.Equal(r.T, r.Response.StatusCode, code, "wrong status code.")
@@ -55,9 +59,9 @@ func (r *ResponseExpectable) ExpectPattern(code int, pattern string) {
 	}
 }
 
-// Creates a new test request/response pair for testing against a Context or any
-// roundtripping code. The request is a simple GET / request and the response is an
-// instance of httptest.ResponseRecorder.
+// NewTestRequestPair() creates a new test request/response pair for testing against a
+// Context or any roundtripping code. The request is a simple GET / request and the
+// response is an instance of httptest.ResponseRecorder.
 func NewTestRequestPair() (http.ResponseWriter, *http.Request) {
 	response := httptest.NewRecorder()
 	request, _ := http.NewRequest("GET", "/", nil)
