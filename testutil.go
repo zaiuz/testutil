@@ -63,3 +63,10 @@ func NewTestRequestPair() (http.ResponseWriter, *http.Request) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	return response, request
 }
+
+// NewTestContext() creates and returns a new test context by using the response and
+// request pair from NewTestRequestPair()
+func NewTestContext() (*z.Context) {
+	response, request := NewTestRequestPair()
+	return z.NewContext(response, request)
+}
